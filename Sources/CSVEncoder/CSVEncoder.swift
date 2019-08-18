@@ -4,10 +4,20 @@ public class CSVEncoder: Encoder {
   
   public var codingPath: [CodingKey] = []
   public var userInfo: [CodingUserInfoKey : Any] = [:]
+  fileprivate let dateFormatter: DateFormatter
   
   private var data = Data()
   
-  public init() {}
+  public static var dateFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.sss"
+    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+    return formatter
+  }()
+  
+  public init(dateFormatter: DateFormatter = CSVEncoder.dateFormatter) {
+    self.dateFormatter = dateFormatter
+  }
   
   @discardableResult public func encode(headers: [String]) throws -> Data {
     write(headers.joined(separator: ","))
@@ -43,13 +53,6 @@ public class CSVEncoder: Encoder {
     
     private let encoder: CSVEncoder
     
-    fileprivate var formatter: DateFormatter = {
-      let formatter = DateFormatter()
-      formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.sss"
-      formatter.timeZone = TimeZone(secondsFromGMT: 0)
-      return formatter
-    }()
-    
     public init(encoder: CSVEncoder) {
       self.encoder = encoder
     }
@@ -58,7 +61,7 @@ public class CSVEncoder: Encoder {
     
     mutating func encode<T>(_ value: T, forKey key: K) throws where T : Encodable {
       if let date = value as? Date {
-        encoder.write(formatter.string(from: date))
+        encoder.write(encoder.dateFormatter.string(from: date))
       } else if let string = value as? CustomStringConvertible {
         encoder.write(String(describing: string))
       }
